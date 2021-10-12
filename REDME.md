@@ -13,3 +13,5 @@ Using the device: DOIT ESP32 DEVKIT V1 in Arduino IDE
 
 Copy `wifi_config.example.h` to `wifi_config.h` and configure accordingly.
 
+Libraries:
+* Adafruit MPU6050 + dependencies

@@ -1,6 +1,10 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <Wire.h>
+
 const int led = LED_BUILTIN;
 
 #include "wifi_config.h"
@@ -9,6 +13,8 @@ const int led = LED_BUILTIN;
 // Wifi and MQTT objects
 WiFiClient esp_client;
 PubSubClient client(esp_client);
+
+Adafruit_MPU6050 mpu;
 
 // used to send messages after interval
 unsigned long lastMsg = 0;
@@ -41,7 +47,22 @@ void setup() {
   start_wifi();
 
   // TODO: connect to sensor
+  // Try to initialize!
+  if (!mpu.begin()) {
+    Serial.println("Failed to find MPU6050 chip");
+    while(1){
+      digitalWrite(led, HIGH);
+      delay(100);
+      digitalWrite(led, LOW);
+      delay(100);
+    }
+  }
+  Serial.println("MPU6050 Found!");
 
+  // configure device
+  mpu.setAccelerometerRange(MPU6050_RANGE_2_G);
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);
 
 
    // setup MQTT
@@ -99,17 +120,20 @@ void reconnect_mqtt() {
   }
 }
 
-void callback(char* topic, byte* payload, unsigned int length) {
+void callback(char* topic, byte* payload, unsigned int len) {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
-  for (int i = 0; i < length; i++) {
+  for (int i = 0; i < len; i++) {
     Serial.print((char)payload[i]);
   }
   Serial.println();
 
   // convert topic and payload to strings
   String topicstr(topic);
+
+  // add null-termination in last place (ok as long as we are not near the end of the buffer this points to)
+  payload[len] = '\0';
   String payloadstr((char*)payload);
 
   // try to interpret the message as an unsigned long
@@ -150,18 +174,18 @@ void loop() {
   if(now - lastMsg > interval) {
     lastMsg = now;
 
-    // read data: BH1750 first since it takes some time (~500ms)
+    // read data
+    sensors_event_t a, g, temp;
+    mpu.getEvent(&a, &g, &temp);
 
-    float lux = 3.0f;
-    float temp = 312.0f;
-    float pressure = 31.0f;
-    float humidity = 32.0f;
 
     // format it to JSON
-    snprintf(msg, MSG_BUFFER_SIZE, "{\"temperature\":%.2f,\"pressure\":%.2f,\"humidity\":%.2f,\"illuminance\":%.2f}", temp, pressure, humidity, lux);
+    snprintf(msg, MSG_BUFFER_SIZE, "{\"acceleration\":{\"x\":%.3f,\"y\":%.3f,\"z\":%.3f}, \"gyro\":{\"x\":%.3f,\"y\":%.3f,\"z\":%.3f}, \"temperature\":%.3f}", a.acceleration.x, a.acceleration.y, a.acceleration.z, g.gyro.x, g.gyro.y, g.gyro.z, temp.temperature);
     
     Serial.print("Publish message: ");
     Serial.println(msg);
+
+    
 
     // publish message
     client.publish(topic_observation, msg);  
