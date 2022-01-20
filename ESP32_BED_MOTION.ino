@@ -1,4 +1,4 @@
-#include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 
 #include <Adafruit_MPU6050.h>
@@ -11,7 +11,7 @@ const int led = LED_BUILTIN;
 
 
 // Wifi and MQTT objects
-WiFiClient esp_client;
+WiFiClientSecure esp_client;
 PubSubClient client(esp_client);
 
 Adafruit_MPU6050 mpu;
@@ -64,6 +64,8 @@ void setup() {
   mpu.setGyroRange(MPU6050_RANGE_500_DEG);
   mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);
 
+  // configure the WifiClientSecure with the root CA
+  esp_client.setCACert(mqtt_root_ca);
 
    // setup MQTT
   client.setServer(mqtt_server, mqtt_port);
@@ -102,7 +104,7 @@ void reconnect_mqtt() {
     // Create a random client ID
 
     // Attempt to connect
-    if (client.connect(mqtt_device_name)) {
+    if (client.connect(mqtt_device_name, mqtt_username, mqtt_password)) {
       Serial.println("connected");
 
       // do stuff when connected here (like subscribing to topics)
