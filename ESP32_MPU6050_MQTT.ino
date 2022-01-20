@@ -29,7 +29,9 @@ volatile bool enabled = false;
 char msg[MSG_BUFFER_SIZE];
 
 // the base topic to publish and listen to
-#define TOPIC_BASE "esp210"
+#ifndef TOPIC_BASE
+  #define TOPIC_BASE "esp210"
+#endif
 
 // using crude way for compile-time string concatenation using feature of the C89-compatible compiler
 const char* topic_enabled = TOPIC_BASE "/enabled";
@@ -46,7 +48,6 @@ void setup() {
 
   start_wifi();
 
-  // TODO: connect to sensor
   // Try to initialize!
   if (!mpu.begin()) {
     Serial.println("Failed to find MPU6050 chip");

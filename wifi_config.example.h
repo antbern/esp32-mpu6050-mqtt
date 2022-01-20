@@ -7,6 +7,9 @@ const char* mqtt_device_name = "esp32 device name";
 const char* mqtt_username = "<username>";
 const char* mqtt_password = "<password>";
 
+// Base of topic to publish to
+#define TOPIC_BASE "esp32"
+
 // Root Certificate Authority to establish a secure SSL connection. In PEM format.
 const char* mqtt_root_ca = \
      "-----BEGIN CERTIFICATE-----\n" \
