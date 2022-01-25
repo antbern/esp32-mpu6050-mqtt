@@ -5,7 +5,13 @@
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 
-const int led = LED_BUILTIN;
+#include "button.h"
+
+#define LED_STATUS LED_BUILTIN
+#define LED_BTN 5   /*  D5 */
+#define PIN_BTN 19  /* D19 */
+
+Button btn(PIN_BTN);
 
 #include "wifi_config.h"
 
@@ -43,8 +49,11 @@ void setup() {
   Serial.begin(115200);
 
   // Set up pins
-  pinMode(led, OUTPUT);
-  digitalWrite(led, HIGH);
+  pinMode(LED_STATUS, OUTPUT);
+  digitalWrite(LED_STATUS, HIGH);
+  pinMode(LED_BTN, OUTPUT);
+  digitalWrite(LED_STATUS, HIGH);
+  pinMode(PIN_BTN, INPUT);
 
   start_wifi();
 
@@ -52,9 +61,9 @@ void setup() {
   if (!mpu.begin()) {
     Serial.println("Failed to find MPU6050 chip");
     while(1){
-      digitalWrite(led, HIGH);
+      digitalWrite(LED_STATUS, HIGH);
       delay(100);
-      digitalWrite(led, LOW);
+      digitalWrite(LED_STATUS, LOW);
       delay(100);
     }
   }
@@ -74,7 +83,7 @@ void setup() {
 
 
   // all done
-  digitalWrite(led, LOW);
+  digitalWrite(LED_STATUS, LOW);
 
 }
 
@@ -84,9 +93,9 @@ void start_wifi() {
   WiFi.begin(ssid, password);
   
   while (WiFi.status() != WL_CONNECTED) {
-    digitalWrite(led, HIGH);
+    digitalWrite(LED_STATUS, HIGH);
     delay(250);
-    digitalWrite(led, LOW);
+    digitalWrite(LED_STATUS, LOW);
     delay(250);
     
     Serial.print(".");
@@ -167,6 +176,25 @@ void loop() {
     reconnect_mqtt();
   }
   client.loop();
+
+  // indicate button status using LED
+  digitalWrite(LED_BTN, digitalRead(PIN_BTN));
+
+
+  switch (btn.update()){
+    case btn_status::BTN_SHORT:
+      Serial.println("SHORT!");
+      break;
+
+    case btn_status::BTN_LONG:
+      Serial.println("LONG!");
+      break;
+  
+    default:
+      break;
+  }
+
+
 
   // don't continue if we are not supposed to acquire and publish anything
   if(!enabled){

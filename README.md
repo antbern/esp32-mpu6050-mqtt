@@ -20,3 +20,4 @@ Libraries & Resources:
 - [knolleary/pubsubclient #462](https://github.com/knolleary/pubsubclient/issues/462)
 - [programmer131/ESP8266-gBridge-TLS](https://github.com/programmer131/ESP8266-gBridge-TLS)
 - [arduino-esp32 WifiClientSecure example](https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFiClientSecure/examples/WiFiClientSecure/WiFiClientSecure.ino)
+- [arduinogetstarted.com - Long Press Short Press](https://arduinogetstarted.com/tutorials/arduino-button-long-press-short-press)
