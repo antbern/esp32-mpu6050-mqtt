@@ -163,12 +163,38 @@ void callback(char* topic, byte* payload, unsigned int len) {
     enabled = i > 0 ? true : false;
     Serial.print("Set enabled: ");
     Serial.println(enabled);
+    blinkEnabledStatus();
   }
 }
 
 // used later for turning on/off with a physical button on the device
 void setEnabled(bool enabled) {
-  client.publish(topic_enabled, (const char*)&(enabled ? "1" : "0"), true);  
+  client.publish(topic_enabled, (const char*)&(enabled ? "1" : "0"), true); 
+  // blinkEnabledStatus();  // status will be blinked in the callback
+}
+
+void blinkEnabledStatus() {
+  digitalWrite(LED_BTN, LOW);
+
+  if (enabled) {
+    // 3 long blinks
+    for (int i = 0; i < 3; i++)
+    {
+      delay(500);
+      digitalWrite(LED_BTN, HIGH);
+      delay(1000);
+      digitalWrite(LED_BTN, LOW);
+    }
+  } else {
+    // 10 short blinks
+    for (int i = 0; i < 10; i++)
+    {
+      delay(100);
+      digitalWrite(LED_BTN, HIGH);
+      delay(100);
+      digitalWrite(LED_BTN, LOW);
+    }
+  }
 }
 
 void loop() {
@@ -180,14 +206,15 @@ void loop() {
   // indicate button status using LED
   digitalWrite(LED_BTN, digitalRead(PIN_BTN));
 
-
   switch (btn.update()){
     case btn_status::BTN_SHORT:
-      Serial.println("SHORT!");
+      // indicate current status
+      blinkEnabledStatus();
       break;
 
     case btn_status::BTN_LONG:
-      Serial.println("LONG!");
+      // toggle enabled status
+      setEnabled(!enabled);
       break;
   
     default:
